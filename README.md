@@ -32,8 +32,6 @@ Key design:
    posterior (avoids target leakage). Residuals are computed via PyTorch autograd
    and scored with stochastic Monte Carlo collocation (Paper Eq. 16):
 
-$$\hat{J}_{\text{phys}}(\theta; X_r) = \frac{1}{N_r} \sum_{k=1}^{N_r} \lVert G_\lambda[\hat{u}](x_k)\rVert^2, \quad x_k \overset{\text{i.i.d.}}{\sim} p_r$$
-
 4. **Total objective (Paper Eq. 21):**
 
 $$\mathcal{L}(\theta) = \mathcal{L}\_\text{data}(\theta) + \beta \cdot \hat{J}\_\text{phys}(\theta; X_r) + \beta_0 \cdot \hat{J}\_\partial(\theta; X_\partial)$$
