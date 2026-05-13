@@ -30,13 +30,13 @@ Key design:
    evaluated on the mean field $\hat{u}(x) = \mu_\theta(x; C, \lambda, z_\text{phys})$
    where $z_\text{phys} \sim q_\theta(z \mid C, \lambda)$ is sampled from the **context-only**
    posterior (avoids target leakage). Residuals are computed via PyTorch autograd
-   and scored with stochastic Monte Carlo collocation (Paper Eq. 16)
+   and scored with stochastic Monte Carlo collocation (Paper Eq. 17)
 
-4. **Total objective (Paper Eq. 21):**
+4. **Total objective (Paper Eq. 23):**
 
 $$\mathcal{L}(\theta) = \mathcal{L}\_\text{data}(\theta) + \beta \cdot \hat{J}\_\text{phys}(\theta; X_r) + \beta_0 \cdot \hat{J}\_\partial(\theta; X_\partial)$$
 
-   where $\mathcal{L}\_\text{data}$ is the standard NP data ELBO (Paper Eq. 19):
+   where $\mathcal{L}\_\text{data}$ is the standard NP data ELBO (Paper Eq. 21):
 
 $$\mathcal{L}\_\text{data}(\theta) = \mathbb{E}\_{q(z \mid C \cup T,\lambda)}\bigl[\log p(Y_T \mid T, C, \lambda, z)\bigr] - \mathrm{KL}\bigl(q(z \mid C \cup T, \lambda) \,\|\, q(z \mid C, \lambda)\bigr)$$
 
