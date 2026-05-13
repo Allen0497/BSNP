@@ -8,38 +8,35 @@ unified meta-learning framework that combines **weak structural priors**
 ## Method Overview
 
 BSNP solves parametric PDE families in a meta-learning setting: given a sparse,
-noisy set of context observations $C = \{(x_i, y_i)\}_{i=1}^{N_c}$ and PDE
-parameters $\lambda$, predict the solution $u(x^*)$ at arbitrary query
-locations $x^*$ with calibrated uncertainty.
+noisy set of context observations `C = {(x_i, y_i), i=1..Nc}` and PDE
+parameters `λ`, predict the solution `u(x*)` at arbitrary query
+locations `x*` with calibrated uncertainty.
 
 Key design:
 
-1. **ConvCNP encoder (weak bias, Paper Eq. 7-11):** kernel-interpolates
+1. **ConvNP encoder (weak bias, Paper Eq. 7-11):** kernel-interpolates
    irregular context onto a regular grid via the RBF kernel
-   $\kappa_\rho(s, x) = \exp\left(-\|s - x\|^2 / (2\rho^2)\right)$, applies a
-   translation-equivariant CNN, and global-pools to obtain a variational
-   latent posterior $q_\theta(z \mid C, \lambda) = \mathcal{N}(\mu_\theta, \mathrm{diag}(\sigma_\theta^2))$.
+   `κ(s, x) = exp(-‖s − x‖² / (2ρ²))`, applies a translation-equivariant CNN,
+   and global-pools to obtain a variational latent posterior
+   `q(z | C, λ) = N(μ_θ, diag(σ_θ²))`.
 
-2. **Decoder (Paper Eq. 12-13):** conditions grid features
-   $\{g_m\}_{m=1}^{M}$ on a sampled latent $z$, then interpolates to query
-   points via normalized kernel weights
-   $\alpha_m(x^*) = \kappa_\rho(s_m, x^*) / \sum_{m'} \kappa_\rho(s_{m'}, x^*)$
-   to produce a heteroscedastic Gaussian predictive distribution
-   $p(y^* \mid x^*, C, \lambda, z) = \mathcal{N}\!\left(\mu(x^*),\, \sigma^2(x^*)\right)$.
+2. **Decoder (Paper Eq. 12-13):** conditions grid features `{g_m}` on a
+   sampled latent `z`, then interpolates to query points via normalized kernel
+   weights `α_m(x*) = κ(s_m, x*) / Σ_m' κ(s_m', x*)` to produce a
+   heteroscedastic Gaussian predictive distribution
+   `p(y* | x*, C, λ, z) = N(μ(x*), σ²(x*))`.
 
 3. **Mean-field physics loss (Paper Section 4.3):** PDE residuals are
-   evaluated on the mean field $\bar{u}(x) = \mu_\theta(x; C, \lambda, z_{\mathrm{phys}})$
-   where $z_{\mathrm{phys}} \sim q_\theta(z \mid C, \lambda)$ is sampled from
-   the **context-only** posterior (avoids target leakage). Residuals are
-   computed via PyTorch autograd and scored with stochastic Monte Carlo
-   collocation (Paper Eq. 16):
-   $\widehat{\mathcal{J}}_{\mathrm{phys}}(\theta; X_r) = \frac{1}{N_r} \sum_{k=1}^{N_r} \left\| \mathcal{G}_\lambda[\bar{u}](x_k^r) \right\|_2^2,
-   \quad x_k^r \overset{\mathrm{i.i.d.}}{\sim} p_r$.
+   evaluated on the mean field `û(x) = μ_θ(x; C, λ, z_phys)` where
+   `z_phys ~ q(z | C, λ)` is sampled from the **context-only** posterior
+   (avoids target leakage). Residuals are computed via PyTorch autograd and
+   scored with stochastic Monte Carlo collocation (Paper Eq. 16):
+   `Ĵ_phys(θ; X_r) = (1/N_r) Σ_k ‖G_λ[û](x_k)‖², x_k ~ p_r i.i.d.`
 
 4. **Total objective (Paper Eq. 21):**
-   $\mathcal{L}(\theta) = \mathcal{L}_{\mathrm{data}}(\theta) + \beta \cdot \widehat{\mathcal{J}}_{\mathrm{phys}}(\theta; X_r) + \beta_0 \cdot \widehat{\mathcal{J}}_{\partial}(\theta; X_\partial)$,
-   where $\mathcal{L}_{\mathrm{data}}$ is the standard NP data ELBO (Paper Eq. 19):
-   $\mathcal{L}_{\mathrm{data}}(\theta) = \mathbb{E}_{q_\theta(z \mid C \cup (T, Y_T), \lambda)} \!\left[ \log p_\theta(Y_T \mid T, C, \lambda, z) \right] - \mathrm{KL}\!\left( q_\theta(z \mid C \cup (T, Y_T), \lambda) \,\|\, q_\theta(z \mid C, \lambda) \right)$.
+   `L(θ) = L_data(θ) + β · Ĵ_phys(θ; X_r) + β₀ · Ĵ_∂(θ; X_∂)`
+   where `L_data` is the standard NP data ELBO (Paper Eq. 19):
+   `L_data(θ) = E_{q(z|C∪T,λ)}[log p(Y_T | T, C, λ, z)] − KL(q(z|C∪T,λ) ‖ q(z|C,λ))`
 
 
 ## Project Structure
@@ -211,7 +208,7 @@ Hui Li, Huafeng Liu, Chenguang Li, Tianxiao Zhang, Yajun Yang, and Liping Jing. 
 ```
 BibTeX：
   @inproceedings{li2026bsnp,
-   title     = {Bias-Spectrum Neural Processes for Parametric {PDEs Architecture Priors Meet {PDE} Constraints},
+   title     = {Bias-Spectrum Neural Processes for Parametric {PDEs}: Architecture Priors Meet {PDE} Constraints},
    author    = {Li, Hui and Liu, Huafeng and Li, Chenguang and Zhang, Tianxiao and Yang, Yajun and Jing, Liping},
    booktitle = {Proceedings of the 43rd International Conference on Machine Learning},
    series    = {Proceedings of Machine Learning Research},
