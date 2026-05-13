@@ -8,35 +8,39 @@ unified meta-learning framework that combines **weak structural priors**
 ## Method Overview
 
 BSNP solves parametric PDE families in a meta-learning setting: given a sparse,
-noisy set of context observations `C = {(x_i, y_i), i=1..Nc}` and PDE
-parameters `λ`, predict the solution `u(x*)` at arbitrary query
-locations `x*` with calibrated uncertainty.
+noisy set of context observations $C = \{(x_i, y_i)\}_{i=1}^{N_c}$ and PDE
+parameters $\lambda$, predict the solution $u(x^\*)$ at arbitrary query
+locations $x^\*$ with calibrated uncertainty.
 
 Key design:
 
 1. **ConvNP encoder (weak bias, Paper Eq. 7-11):** kernel-interpolates
    irregular context onto a regular grid via the RBF kernel
-   `κ(s, x) = exp(-‖s − x‖² / (2ρ²))`, applies a translation-equivariant CNN,
-   and global-pools to obtain a variational latent posterior
-   `q(z | C, λ) = N(μ_θ, diag(σ_θ²))`.
+   $\kappa_\rho(s, x) = \exp(-\|s - x\|^2 / (2\rho^2))$, applies a
+   translation-equivariant CNN, and global-pools to obtain a variational
+   latent posterior $q_\theta(z \mid C, \lambda) = \mathcal{N}(\mu_\theta, \mathrm{diag}(\sigma_\theta^2))$.
 
-2. **Decoder (Paper Eq. 12-13):** conditions grid features `{g_m}` on a
-   sampled latent `z`, then interpolates to query points via normalized kernel
-   weights `α_m(x*) = κ(s_m, x*) / Σ_m' κ(s_m', x*)` to produce a
-   heteroscedastic Gaussian predictive distribution
-   `p(y* | x*, C, λ, z) = N(μ(x*), σ²(x*))`.
+2. **Decoder (Paper Eq. 12-13):** conditions grid features $\{g_m\}$ on a
+   sampled latent $z$, then interpolates to query points via normalized kernel
+   weights $\alpha_m(x^\*) = \kappa(s_m, x^\*) / \sum_{m'} \kappa(s_{m'}, x^\*)$
+   to produce a heteroscedastic Gaussian predictive distribution
+   $p(y^\* \mid x^\*, C, \lambda, z) = \mathcal{N}(\mu(x^\*), \sigma^2(x^\*))$.
 
 3. **Mean-field physics loss (Paper Section 4.3):** PDE residuals are
-   evaluated on the mean field `û(x) = μ_θ(x; C, λ, z_phys)` where
-   `z_phys ~ q(z | C, λ)` is sampled from the **context-only** posterior
-   (avoids target leakage). Residuals are computed via PyTorch autograd and
-   scored with stochastic Monte Carlo collocation (Paper Eq. 16):
-   `Ĵ_phys(θ; X_r) = (1/N_r) Σ_k ‖G_λ[û](x_k)‖², x_k ~ p_r i.i.d.`
+   evaluated on the mean field $\hat{u}(x) = \mu_\theta(x; C, \lambda, z_\text{phys})$
+   where $z_\text{phys} \sim q_\theta(z \mid C, \lambda)$ is sampled from the **context-only**
+   posterior (avoids target leakage). Residuals are computed via PyTorch autograd
+   and scored with stochastic Monte Carlo collocation (Paper Eq. 16):
+
+$$\hat{J}\_\text{phys}(\theta; X_r) = \frac{1}{N_r} \sum_{k=1}^{N_r} \|G_\lambda[\hat{u}](x_k)\|^2, \quad x_k \overset{\text{i.i.d.}}{\sim} p_r$$
 
 4. **Total objective (Paper Eq. 21):**
-   `L(θ) = L_data(θ) + β · Ĵ_phys(θ; X_r) + β₀ · Ĵ_∂(θ; X_∂)`
-   where `L_data` is the standard NP data ELBO (Paper Eq. 19):
-   `L_data(θ) = E_{q(z|C∪T,λ)}[log p(Y_T | T, C, λ, z)] − KL(q(z|C∪T,λ) ‖ q(z|C,λ))`
+
+$$\mathcal{L}(\theta) = \mathcal{L}\_\text{data}(\theta) + \beta \cdot \hat{J}\_\text{phys}(\theta; X_r) + \beta_0 \cdot \hat{J}\_\partial(\theta; X_\partial)$$
+
+   where $\mathcal{L}\_\text{data}$ is the standard NP data ELBO (Paper Eq. 19):
+
+$$\mathcal{L}\_\text{data}(\theta) = \mathbb{E}\_{q(z \mid C \cup T,\lambda)}\bigl[\log p(Y_T \mid T, C, \lambda, z)\bigr] - \mathrm{KL}\bigl(q(z \mid C \cup T, \lambda) \,\|\, q(z \mid C, \lambda)\bigr)$$
 
 
 ## Project Structure
