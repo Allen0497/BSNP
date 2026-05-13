@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# 1D Nonlinear Poisson Experiment -- Best Configuration
+# PDE:  -d/dx[a(x; lam) * du/dx] = f(x),  u(0) = u(1) = 0
+#       a(x; lam) = exp(a0*sin(pi*x) + a1*cos(pi*x)),  f(x) = sin(pi*x)
+# Hyperparameters found via two-stage random/grid search (see BSNP README).
+# ---------------------------------------------------------------------------
+
+experiment:
+  name: poisson_1d
+  seed: 42
+
+pde:
+  type: poisson_1d
+  domain: [0.0, 1.0]
+  param_dim: 2                       # lambda = (a0, a1)
+  param_range: [[-2.0, 2.0], [-2.0, 2.0]]
+
+data:
+  n_train_tasks: 10000
+  n_val_tasks: 500
+  n_test_tasks: 1000
+  n_context_min: 10
+  n_context_max: 50
+  n_target: 100
+  n_grid: 128                        # FD grid resolution for ground-truth solution
+  noise_std: 0.05                    # relative noise level on context observations
+
+model:
+  grid_size: 32                      # ConvCNP grid resolution M (1D)
+  latent_dim: 128
+  cnn_channels: [64, 128, 128, 64]
+  cnn_kernel_size: 5
+  kernel_lengthscale: 0.15           # RBF kernel lengthscale rho
+  epsilon: 0.000001                  # numerical stabilizer for kernel denominators
+  sigma_min: 0.0001                  # floor on predictive std
+  param_embed_dim: 16
+  head_hidden_dim: 128
+
+training:
+  n_steps: 20000
+  batch_size: 50
+  lr: 5e-4
+  lr_decay: 0.1
+  lr_decay_steps: [15000, 18000]     # MultiStepLR milestones
+  grad_accum_steps: 1
+  beta: 0.3                          # interior physics weight
+  beta_0: 0.05                       # boundary physics weight
+  n_collocation: 100                 # interior collocation points per step (N_r)
+  n_boundary: 50                     # boundary collocation points per step (N_0)
+  kl_weight: 1.0
+  clip_grad: 1.0
+
+eval:
+  metrics: [mnse, nll, ecp90]
+  n_samples: 50                      # MC samples for ECP estimation

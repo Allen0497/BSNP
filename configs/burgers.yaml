@@ -1,0 +1,58 @@
+# ---------------------------------------------------------------------------
+# Burgers Equation Experiment -- Best Configuration (v4)
+# PDE:  u_t + u * u_x = nu * u_xx
+# IC:   u(x, 0) = A * sin(2*pi*x)
+# Domain: x in [0, 1), t in [0, 1]; 2D space-time meta-learning problem.
+# Best config found by iterative search (v1 -> v4).  Key win: n_context_max=128.
+# ---------------------------------------------------------------------------
+
+experiment:
+  name: burgers
+  seed: 42
+
+pde:
+  type: burgers
+  domain_x: [0.0, 1.0]
+  domain_t: [0.0, 1.0]
+  param_dim: 2                        # lambda = (nu, A)
+  param_range: [[0.005, 0.1], [0.5, 2.0]]   # nu >= 0.005 for spectral-solver stability
+
+data:
+  n_train_tasks: 10000
+  n_val_tasks: 500
+  n_test_tasks: 1000
+  n_context_min: 10
+  n_context_max: 128                  # key improvement: more context points help 2D
+  n_target: 100
+  n_grid_x: 64
+  n_grid_t: 64
+  noise_std: 0.05
+
+model:
+  grid_size: [64, 64]                 # ConvCNP 2D grid (64 x 64)
+  latent_dim: 256
+  cnn_channels: [64, 128, 256, 128, 64]
+  cnn_kernel_size: 5
+  kernel_lengthscale: 0.3             # larger than 1D -- 2D needs broader receptive field
+  epsilon: 0.000001
+  sigma_min: 0.0001
+  param_embed_dim: 16
+  head_hidden_dim: 128
+
+training:
+  n_steps: 60000                      # longer schedule than Poisson (slower convergence)
+  batch_size: 25
+  lr: 8e-4
+  lr_decay: 0.1
+  lr_decay_steps: [45000, 55000]
+  grad_accum_steps: 2                 # effective batch size = 50
+  beta: 0.1
+  beta_0: 0.02                        # smaller than Poisson (IC residual dominates early)
+  n_collocation: 400                  # more collocation for 2D residual stability
+  n_boundary: 150
+  kl_weight: 1.0
+  clip_grad: 1.0
+
+eval:
+  metrics: [mnse, nll, ecp90]
+  n_samples: 50
