@@ -30,7 +30,7 @@ Key design:
    evaluated on the mean field $\hat{u}(x) = \mu_\theta(x; C, \lambda, z_\text{phys})$
    where $z_\text{phys} \sim q_\theta(z \mid C, \lambda)$ is sampled from the **context-only**
    posterior (avoids target leakage). Residuals are computed via PyTorch autograd
-   and scored with stochastic Monte Carlo collocation (Paper Eq. 16):
+   and scored with stochastic Monte Carlo collocation (Paper Eq. 16)
 
 4. **Total objective (Paper Eq. 21):**
 
